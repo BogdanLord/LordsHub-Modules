@@ -1,67 +1,28 @@
--- [[ LORDS HUB - DEBUG LOADER ]] --
--- Această versiune forțează re-descărcarea fișierelor (ignoră cache-ul)
-
-local GAME_NAME = "The Forge"
--- Link-ul STANDARD (fără refs/heads)
-local REPO_BASE = "https://raw.githubusercontent.com/BogdanLord/LordsHub-Modules/main/" 
-
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "Lord's Hub - DEBUG MODE",
-   LoadingTitle = "Debugging...",
-   ConfigurationSaving = { Enabled = false },
-   KeySystem = false,
-})
-
-local Utils = {}
-function Utils.log(msg) 
-    print("[DEBUG] " .. msg)
-    Rayfield:Notify({Title = "Debug", Content = msg, Duration = 2})
-end
-
-local function LoadForceFresh(fileName)
-    -- TRUC: Adăugăm timpul curent la link ca să păcălim Roblox să nu folosească cache-ul
-    local url = REPO_BASE .. fileName .. "?t=" .. tostring(os.time())
+-- [[ DEBUG TEST ]] --
+return function(Window, Rayfield, Utils)
+    print("DEBUG: 1. Modulul a pornit execuția.")
     
-    print("------------------------------------------------")
-    print("1. Încerc conectarea la: " .. url)
+    -- Verificăm dacă Window există
+    print("DEBUG: 2. Variabila Window este: " .. tostring(Window))
     
-    local success, response = pcall(function() return game:HttpGet(url, true) end)
+    -- Încercăm să creăm tab-ul într-un pcall ca să prindem eroarea Rayfield
+    local success, result = pcall(function()
+        -- FOLOSIM UN ID VALID PENTRU IMAGINE (4483362458), NU nil!
+        return Window:CreateTab("Tab De Test", 4483362458)
+    end)
     
-    if not success then
-        warn("❌ EROARE REȚEA: Nu pot accesa GitHub!")
-        return
-    end
-
-    print("2. Fișier descărcat! Mărime: " .. #response .. " caractere")
-    print("3. Previzualizare cod (Primele linii):")
-    print(string.sub(response, 1, 150)) -- Vedem primele 150 caractere în consolă
-    
-    -- Verificăm dacă am descărcat HTML din greșeală
-    if string.find(response, "<!DOCTYPE html>") then
-        warn("❌ CRITIC: Link-ul returnează un SITE, nu un script LUA!")
-        Rayfield:Notify({Title = "Eroare", Content = "Link greșit (HTML detectat)", Duration = 5})
-        return
-    end
-
-    local func, err = loadstring(response)
-    if not func then
-        warn("❌ EROARE SINTAXĂ: Codul din " .. fileName .. " este scris greșit!")
-        warn("Detalii eroare: " .. tostring(err))
-        Rayfield:Notify({Title = "Syntax Error", Content = "Vezi consola F9!", Duration = 5})
-        return
-    end
-
-    print("4. Executare modul...")
-    local ok, runErr = pcall(func, Window, Rayfield, Utils)
-    
-    if ok then
-        print("✅ SUCCES: Tab-ul ar trebui să fie vizibil!")
-        Rayfield:Notify({Title = "Succes", Content = "Modul încărcat!", Duration = 3})
+    if success then
+        print("DEBUG: 3. Tab creat cu succes! Obiectul este: " .. tostring(result))
+        
+        -- Adăugăm un buton ca să fim siguri
+        result:CreateButton({
+            Name = "Daca vezi asta, merge!",
+            Callback = function() print("Click!") end
+        })
+        
+        Rayfield:Notify({Title = "Test", Content = "Tab-ul ar trebui să fie vizibil!", Duration = 5})
     else
-        warn("❌ EROARE RUNTIME: " .. tostring(runErr))
+        warn("DEBUG: 3. CRITIC - Rayfield nu a putut crea tab-ul!")
+        warn("Eroare: " .. tostring(result))
     end
 end
-
--- Încărcăm mine.lua
-LoadForceFresh("mine.lua")
